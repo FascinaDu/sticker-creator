@@ -1,4 +1,4 @@
-# 🔄 WhatsApp Sticker Sender
+# 🔄 Sticker Creator
 
 > Site para upload de imagens e envio automático de figurinhas via WhatsApp
 
@@ -14,7 +14,7 @@
 
 ## Sobre o Projeto
 
-O **WhatsApp Sticker Sender** é uma aplicação web que permite fazer upload de imagens, convertê-las automaticamente para o formato de figurinha do WhatsApp e enviá-las para contatos individuais ou grupos. A aplicação utiliza a biblioteca não-oficial `whatsapp-web.js` para interagir com o WhatsApp, oferecendo uma interface simples e intuitiva para o usuário.
+O **Sticker Creator** é uma aplicação web que permite fazer upload de imagens, convertê-las automaticamente para o formato de figurinha do WhatsApp e enviá-las para contatos individuais ou grupos. A aplicação utiliza a biblioteca não-oficial `whatsapp-web.js` para interagir com o WhatsApp, oferecendo uma interface simples e intuitiva para o usuário.
 
 ## Tecnologias Utilizadas
 
@@ -34,10 +34,10 @@ Para instalar e executar o projeto, siga os passos abaixo:
 
 ```bash
 # Clone este repositório
-git clone https://github.com/seu-usuario/whatsapp-sticker-sender.git
+git clone https://github.com/FascinaDu/sticker-creator.git
 
 # Acesse a pasta do projeto
-cd whatsapp-sticker-sender
+cd sticker-creator
 
 # Instale as dependências
 npm install
