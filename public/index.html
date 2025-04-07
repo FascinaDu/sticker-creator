@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviador de Figurinhas WhatsApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px dashed #ccc;
+        }
+        input, button, select {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+        }
+        button {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enviador de Figurinhas WhatsApp</h1>
+        
+        <div id="status" class="status disconnected">
+            Verificando status de conexão...
+        </div>
+        
+        <form id="stickerForm">
+            <div>
+                <label for="imageFile">Selecione uma imagem:</label>
+                <input type="file" id="imageFile" accept="image/*" required>
+            </div>
+            
+            <div class="preview">
+                <img id="imagePreview" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Prévia da imagem">
+            </div>
+            
+            <div>
+                <label for="destinationType">Enviar para:</label>
+                <select id="destinationType">
+                    <option value="individual">Contato Individual</option>
+                    <option value="group">Grupo</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="destination">Número/ID do Grupo:</label>
+                <input type="text" id="destination" placeholder="Ex: 5511999999999 ou ID do grupo" required>
+            </div>
+            
+            <button type="submit" id="submitBtn">Enviar Figurinha</button>
+        </form>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Verificar status da conexão
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('status');
+                const submitBtn = document.getElementById('submitBtn');
+                
+                if (data.connected) {
+                    statusDiv.className = 'status connected';
+                    statusDiv.textContent = `Conectado como: ${data.info.name} (${data.info.phone})`;
+                    submitBtn.disabled = false;
+                } else {
+                    statusDiv.className = 'status disconnected';
+                    statusDiv.textContent = 'Desconectado! Escaneie o QR code no console do servidor.';
+                    submitBtn.disabled = true;
+                }
+            } catch (error) {
+                console.error('Erro ao verificar status:', error);
+                document.getElementById('status').textContent = 'Erro ao verificar status de conexão';
+            }
+        }
+        
+        // Verificar status ao carregar a página
+        window.addEventListener('load', checkStatus);
+        
+        // Verificar status periodicamente
+        setInterval(checkStatus, 10000);
+        
+        // Preview da imagem
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('imagePreview').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Envio do formulário
+        document.getElementById('stickerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const imageFile = document.getElementById('imageFile').files[0];
+            const destinationType = document.getElementById('destinationType').value;
+            const destination = document.getElementById('destination').value;
+            
+            if (!imageFile || !destination) {
+                showResult('Preencha todos os campos', false);
+                return;
+            }
+            
+            formData.append('image', imageFile);
+            formData.append('destinationType', destinationType);
+            formData.append('destination', destination);
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+            
+            try {
+                const response = await fetch('/api/send-sticker', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('Figurinha enviada com sucesso!', true);
+                } else {
+                    showResult(`Erro: ${data.message}`, false);
+                }
+            } catch (error) {
+                showResult(`Erro ao conectar com o servidor: ${error.message}`, false);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Figurinha';
+            }
+        });
+        
+        function showResult(message, isSuccess) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+            resultDiv.className = isSuccess ? 'result success' : 'result error';
+            
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
